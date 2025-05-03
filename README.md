@@ -13,3 +13,6 @@ Since this is only Version 1.0 We will upgrade this script time by time and add 
 * it filter javascript files from urls and store them into `js.txt` for further testing.
 * Then it runs `HTTPx` to filter alive Javascript files.
 * Then it use the `js` files and extract hidden endpoints from `js` files and save them into `endpoints.txt`
+
+# Usage
+* `bash Archive_Data.sh example.com`
