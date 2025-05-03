@@ -71,7 +71,7 @@ run_cdx() {
 	┗┻┛┗┻┗┫┻┛┗┻┗┛┗  ┻┛┗┻┗┗┻
 	      ┛                
 ${RESET}"
-	local update_interval=200
+	local update_interval=100
 	local count=0
     echo -e "${YELLOW}[+] Extracting URLs from Wayback CDX...⏳${RESET}"
 
