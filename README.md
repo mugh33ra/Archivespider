@@ -1,9 +1,10 @@
 # Archive-Data
 A Bash Script that Pulls Data from Wayback Machine, Alien_Vault &amp; Virus Total
 
-# Tools
+# Required Tools
 * Httpx
 * uro
+* golang
 
 # Features
 Since this is only Version 1.0 We will upgrade this script time by time and add some more advance techniques to find xss, sqli, open_redirect ect..
@@ -15,4 +16,5 @@ Since this is only Version 1.0 We will upgrade this script time by time and add 
 * Then it use the `js` files and extract hidden endpoints from `js` files and save them into `endpoints.txt`
 
 # Usage
+* Make sure you run `install.sh` before running the script.
 * `bash Archive_Data.sh example.com`
