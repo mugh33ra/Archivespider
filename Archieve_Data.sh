@@ -148,7 +148,7 @@ ${RESET}"
 	curl -s "https://virustotal.com/vtapi/v2/domain/report?domain=$domain&apikey=$apikey" > vt.txt &
 	show_spinner "${YELLOW} Fetching from Virus_Total Api"
 
-	if [[ ! -s vt.txt ]]; then
+	if [[ ! -s "vt.txt" ]]; then
 		echo -e "${RED}[!] vt.txt is empty😥${RESET}"
 		echo -e "${RED}[!] Removing vt.txt${RESET}"
 	else
@@ -176,37 +176,42 @@ filter_cdx() {
 ${RESET}"
 
 	local count=0
-	echo -e "${YELLOW}[>] Filtering cdx.txt,vt.txt,alienVault.txt for intresting files...⏳${RESET}"
-	sleep 1
 
 	#filter for juicy files
-	cat cdx.txt vt.txt alienVault.txt | sort -u | grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc' > "juicy.txt"
-	
-	echo -e "${GREEN}[+] Done🎉${RESET}"
-	echo -e "${GREEN}[+] Filter Result saved to juicy.txt👌${RESET}"
-	sleep 0.6
-	
-	echo -e "${GREEN}[+] Combining all urls of vt.txt alienVault.txt cdx.txt....⏳${RESET}"
-	cat cdx.txt vt.txt alienVault.txt | sort -u > allurls.txt && mkdir .backup && mv cdx.txt vt.txt alienVault.txt .backup/
-	
-	echo -e "${GREEN}[+] Filtering and removing jpeg,png,jpg from allurls.txt...⏳${RESET}"
-	sleep 1
-	cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' > cleanUrls.txt
-	rm allurls.txt
+	if [[ -f "cdx.txt" && -f "alienVault.txt" && -f "vt.txt"  ]]; then
+
+		echo -e "${YELLOW}[>] Filtering cdx.txt,vt.txt,alienVault.txt for intresting files...⏳${RESET}"
+		sleep 1
+		cat cdx.txt vt.txt alienVault.txt | sort -u | grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc' > "juicy.txt"
+		echo -e "${GREEN}[+] Done🎉${RESET}"
+		echo -e "${GREEN}[+] Filter Result saved to juicy.txt👌${RESET}"
+		sleep 0.6
+		
+		echo -e "${GREEN}[+] Combining all urls of vt.txt alienVault.txt cdx.txt....⏳${RESET}"
+		cat cdx.txt vt.txt alienVault.txt | sort -u > allurls.txt && mkdir .backup && mv cdx.txt vt.txt alienVault.txt .backup/
+		
+		echo -e "${GREEN}[+] Filtering and removing jpeg,png,jpg from allurls.txt...⏳${RESET}"
+		sleep 1
+		cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' > cleanUrls.txt
+		rm allurls.txt
 
 
-    while IFS= read -r line; do
-    	((count++))
-    	echo -ne "${YELLOW}\r[✓] Total Cleaned Urls: $CYAN"${count}""
-    done < cleanUrls.txt
-	
-	echo -e "${GREEN}\n[✓] Now Clean Data are saved to cleanUrls.txt😎${RESET}"
-	echo ""
+		    while IFS= read -r line; do
+		    	((count++))
+		    	echo -ne "${YELLOW}\r[✓] Total Cleaned Urls: $CYAN"${count}""
+		    done < cleanUrls.txt
+		
+		echo -e "${GREEN}\n[✓] Now Clean Data are saved to cleanUrls.txt😎${RESET}"
+		echo ""
+	else
+		echo -e "${RED}[!] Files are empty and removed${RESET}"
+	fi
+
 }
 
 js_endpoints() {
 
-	echo -e "${GREEN}
+	echo -e "${MAGENTA}
 	┏┓•┓     •      ┏┳┏┓  ┏┓•┓   
 	┣ ┓┃╋┏┓┏┓┓┏┓┏┓   ┃┗┓  ┣ ┓┃┏┓┏
 	┻ ┗┗┗┗ ┛ ┗┛┗┗┫  ┗┛┗┛  ┻ ┗┗┗ ┛
@@ -214,38 +219,53 @@ js_endpoints() {
 ${RESET}"
 	local update_interval=200
 	local count=0
-	echo -e "${GREEN}[>] Filtering JS files from allurls.txt...⏳${RESET}"
-	sleep 1
-	cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
-	cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
-	rm cleanUrls.txt && cat copy.txt | uro > cleanUrls.txt && rm copy.txt
+	if [[ -f "cleanUrls.txt" ]]; then
 
-    while IFS= read -r line; do
-    	((count++))
-    	echo -ne "${YELLOW}\r[✓] Total Js Files: $CYAN"${count}""
-    done < js.txt
-	echo -e "${GREEN}\n[+] Done🎉"
-	echo -e "${GREEN}\n[✓] js files filtered and saved to js.txt😎${RESET}"
+		echo -e "${GREEN}[>] Filtering JS files from cleanUrls.txt...⏳${RESET}"
+		sleep 1
+		cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
+		cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
+		rm cleanUrls.txt && cat copy.txt | uro > cleanUrls.txt && rm copy.txt
+
+	    while IFS= read -r line; do
+	    	((count++))
+	    	echo -ne "${YELLOW}\r[✓] Total Js Files: $CYAN"${count}""
+	    done < js.txt
+		echo -e "${GREEN}\n[+] Done🎉"
+		echo -e "${GREEN}\n[✓] js files filtered and saved to js.txt😎${RESET}"
+	
+	else
+		echo -e "${RED}[!] cleanUrls.txt are empty and removed${RESET}"
+	fi
 
 }
 
 httpx_tool() {
 
-        echo -e "${GREEN}
+        echo -e "${MAGENTA}
 	┓┏      
 	┣┫╋╋┏┓┓┏
 	┛┗┗┗┣┛┛┗
 	    ┛   
 ${RESET}"
-        echo -e "${GREEN}[>] Running httpx on js files...⏳${RESET}"
-        cat js.txt | httpx --status-code > js1.txt
-        echo -e "${YELLOW}[+] Done🎉${RESET}"
-        cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
-        rm js1.txt
-        cat alivejs.txt | while read url;do curl -s $url ; done | grep -Eo '(/[a-zA-Z0-9_-]+)*)|(/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*)\.(php|aspx|asp|jsp|html|json|sql|ini|log|LOG|xml|zip|conf|htm|jspx|cgi|bak|backup)' | tr -d '"' | sort -u | cut -d ")" -f 1 > endpoints.txt
-        echo -e "${YELLOW}[✓] Endpoints extracted from js files are saved to endpoints.txt😎${RESET}"
+		
+		if [[ -f "js.txt" ]]; then
+
+			echo -e "${GREEN}[>] Running httpx on js files...⏳${RESET}"
+	        cat js.txt | httpx --status-code > js1.txt
+	        echo -e "${YELLOW}[+] Done🎉${RESET}"
+	        cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
+	        rm js1.txt
+	        cat alivejs.txt | while read url;do curl -s $url ; done | grep -Eo '(/[a-zA-Z0-9_-]+)*)|(/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*)\.(php|aspx|asp|jsp|html|json|sql|ini|log|LOG|xml|zip|conf|htm|jspx|cgi|bak|backup)' | tr -d '"' | sort -u | cut -d ")" -f 1 > endpoints.txt
+	        echo -e "${YELLOW}[✓] Endpoints extracted from js files are saved to endpoints.txt😎${RESET}"
+		
+		else
+			echo -e "${RED}[!] js.txt not found maybe empty and removed${RESET}"
+		fi
 
 }
+
+
 run_cdx
 otx_alienvault
 vt_data
