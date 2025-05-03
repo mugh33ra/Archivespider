@@ -109,7 +109,6 @@ otx_alienvault() {
 	┛┗┗┗┗ ┛┗  ┗┛┗┻┗┻┗┗
 	                  
 	${RESET}"
-	local update_interval=200
 	local count=0
 	echo -e "${YELLOW}[+] Fetching Urls from Alien Vault⏳${RESET}"
 	sleep 0.5
@@ -127,9 +126,7 @@ otx_alienvault() {
 
 		while IFS= read -r line; do
 			((count++))
-			if (( count % update_interval == 0 )); then
-				echo -ne "${YELLOW}\r[✓] URLs fetched from Alien Vault: $CYAN"${count}""
-			fi
+			echo -ne "${YELLOW}\r[✓] URLs fetched from Alien Vault: $CYAN"${count}""
 		done < alienVault.txt
 		
 		echo -e "${GREEN}\n[✓] Result is Saved to alienVault.txt😎${RESET}"
@@ -146,7 +143,6 @@ vt_data() {
 	┗┛┗┛ ┗┻┛   ┻ ┗┛┗┗┻┗
 	                   
 ${RESET}"
-	local update_interval=200
 	local count=0
 	echo -e "${YELLOW}[>] Fetching urls from Virus total...⏳${RESET}"
 	curl -s "https://virustotal.com/vtapi/v2/domain/report?domain=$domain&apikey=$apikey" > vt.txt &
@@ -181,7 +177,6 @@ filter_cdx() {
 	             ┛        
 ${RESET}"
 
-	local update_interval=200
 	local count=0
 	echo -e "${YELLOW}[>] Filtering cdx.txt,vt.txt,alienVault.txt for intresting files...⏳${RESET}"
 	sleep 1
