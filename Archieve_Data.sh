@@ -7,8 +7,11 @@ YELLOW='\033[0;33m'
 MAGENTA='\033[0;35m'
 RESET="\e[0m"
 CYAN='\033[0;36m'
+
 domain=$1
 apikey=845a78a30376b485ce0c66d28c41f38712bc6becf2a628a9d464d1c3c5a8f718
+
+
 
 if [[ $# != 1 ]]; then
 	echo -e "${MAGENTA}"
@@ -38,6 +41,10 @@ else
 					    Coded By @mugh33ra(X)
 
 EOF
+fi
+
+if [[ ! -d $domain ]]; then
+	mkdir $domain && cd $domain
 fi
 
 show_spinner() {
