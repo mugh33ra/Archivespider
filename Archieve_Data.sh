@@ -157,9 +157,7 @@ ${RESET}"
 
 		while IFS= read -r line; do
 			((count++))
-			if (( count % update_interval == 0 )); then
-				echo -ne "${YELLOW}\r[✓] URLs fetched from VirusTotal: $CYAN"${count}""
-			fi
+			echo -ne "${YELLOW}\r[✓] URLs fetched from VirusTotal: $CYAN"${count}""
 		done < vt.txt
 
 		echo -e "${GREEN}\n[✓] Result is Saved to vt.txt😎${RESET}"
