@@ -259,9 +259,20 @@ total() {
 
 	total_clean_urls=$(wc -l < cleanUrls.txt)
 	total_js_files=$(wc -l < js.txt)
+
+	if [[ -f js.txt && -f cleanUrls.txt ]]; then
+		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"${total_clean_urls}""
+		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"${total_js_files}""
+
+	elif [[ -f js.txt && ! -f cleanUrls.txt ]]; then
+		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"${total_js_files}""
+
+	elif [[ -f cleanUrls.txt && ! -f js.txt ]]; then
+		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"${total_clean_urls}""
+	else
+		echo -e "${RED}${BOLD}[!] Js.txt & cleanurls.txt are not found${RESET}"
+	fi
 	
-	echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"${total_clean_urls}""
-	echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"${total_js_files}""
 }
 
 run_cdx
