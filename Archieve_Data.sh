@@ -89,7 +89,6 @@ ${RESET}"
     	while IFS= read -r line; do
     		((count++))
     		if (( count % update_interval == 0 )); then
-
     			echo -ne "${YELLOW}\r[✓] URLs fetched from Wayback: $CYAN${count}${RESET}"
     		fi
 		done < cdx.txt
@@ -217,22 +216,30 @@ js_endpoints() {
 	┻ ┗┗┗┗ ┛ ┗┛┗┗┫  ┗┛┗┛  ┻ ┗┗┗ ┛
 	             ┛               
 ${RESET}"
-	local update_interval=200
 	local count=0
 	if [[ -f "cleanUrls.txt" ]]; then
 
 		echo -e "${GREEN}[>] Filtering JS files from cleanUrls.txt...⏳${RESET}"
 		sleep 1
 		cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
-		cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
-		rm cleanUrls.txt && cat copy.txt | uro > cleanUrls.txt && rm copy.txt
 
-	    while IFS= read -r line; do
-	    	((count++))
-	    	echo -ne "${YELLOW}\r[✓] Total Js Files: $CYAN"${count}""
-	    done < js.txt
-		echo -e "${GREEN}\n[+] Done🎉"
-		echo -e "${GREEN}\n[✓] js files filtered and saved to js.txt😎${RESET}"
+		if [[ ! -s "js.txt" ]]; then
+			echo -e "${RED}[!] No js files found in cleanurls.txt😥${RESET}"
+			rm js.txt
+
+		else
+			
+			cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
+			rm cleanUrls.txt && cat copy.txt | uro > cleanUrls.txt && rm copy.txt
+
+			while IFS= read -r line; do
+				((count++))
+				echo -ne "${YELLOW}\r[✓] Total Js Files: $CYAN"${count}""
+			done < js.txt
+
+			echo -e "${GREEN}\n[+] Done🎉"
+			echo -e "${GREEN}[✓] js files filtered and saved to js.txt😎${RESET}"
+		fi
 	
 	else
 		echo -e "${RED}[!] cleanUrls.txt are empty and removed${RESET}"
@@ -273,3 +280,4 @@ filter_cdx
 js_endpoints
 httpx_tool
 wait
+
