@@ -260,16 +260,13 @@ total() {
 
 	if [[ -f js.txt && -f cleanUrls.txt ]]; then
 		
-		total_clean_urls=$(wc -l < cleanUrls.txt)
-		total_js_files=$(wc -l < js.txt)
-		
-		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"${total_clean_urls}""
-		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"${total_js_files}""
+		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"$(wc -l < cleanUrls.txt)""
+		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"$(wc -l < js.txt)""
 
 	elif [[ -f js.txt && ! -f cleanUrls.txt ]]; then
-		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"${total_js_files}""
+		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"$(wc -l < js.txt)""
 	elif [[ -f cleanUrls.txt && ! -f js.txt ]]; then
-		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"${total_clean_urls}""
+		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"$(wc -l < cleanUrls.txt)""
 	else
 		echo -e "${RED}${BOLD}[!] Js.txt & cleanurls.txt are not found${RESET}"
 	fi
