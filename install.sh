@@ -11,7 +11,6 @@ for tool in "${tools[@]}"; do
   if ! command -v "$tool" > /dev/null 2>&1; then
     echo -e "${RED}[>] $tool is not installed...${RESET}"
     sleep 0.5
-    echo -e "${GREEN}[>] Installing $tool...⏳${RESET}"
     case "$tool" in
       go)
         echo -e "${YELLOW}[>] Installing Golang...⏳${RESET}"
