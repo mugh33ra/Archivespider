@@ -20,7 +20,7 @@ for tool in "${tools[@]}"; do
       httpx)
         echo -e "${YELLOW}[>] Installing httpx...⏳${RESET}"
         go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-        cp ~/go/bin/subfinder /usr/bin
+        cp ~/go/bin/subfinder /usr/bin/httpx-toolkit
         ;;
       uro)
         echo -e "${YELLOW}[>] Installing uro...⏳${RESET}"
