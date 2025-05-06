@@ -243,7 +243,7 @@ ${RESET}"
 		if [[ -f "js.txt" ]]; then
 
 			echo -e "${GREEN}${BOLD}[>] Running httpx on js files...⏳${RESET}"
-	        cat js.txt | httpx --status-code > js1.txt
+	        cat js.txt | httpx-toolkit --status-code > js1.txt
 	        echo -e "${YELLOW}${BOLD}[+] Done🎉${RESET}"
 	        cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
 	        rm js1.txt
