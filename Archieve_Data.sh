@@ -207,7 +207,7 @@ ${RESET}"
 
 		echo -e "${GREEN}${BOLD}[>] Filtering JS files from cleanUrls.txt...⏳${RESET}"
 		sleep 1
-		cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
+		cat cleanUrls.txt | sort -u | grep "\.js" > js.txt
 
 		if [[ ! -s "js.txt" ]]; then
 			echo -e "${RED}${BOLD}[!] No js files found in cleanurls.txt😥${RESET}"
@@ -215,7 +215,7 @@ ${RESET}"
 
 		else
 			
-			cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
+			cat cleanUrls.txt | sort -u |grep -v "\.js" > copy.txt
 			rm cleanUrls.txt && cat copy.txt | sort -u > cleanUrls.txt && rm copy.txt
 
 			total=$(wc -l < js.txt)
