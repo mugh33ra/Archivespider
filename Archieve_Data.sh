@@ -247,8 +247,8 @@ ${NC}"
 		
 		if [[ -f "js.txt" ]]; then
 
-			echo -e "${GREEN}${BOLD}[>] Running httpx on js files...⏳${NC}"
-	        cat js.txt | httpx --status-code > js1.txt
+			echo -e "${GREEN}${BOLD}[>] Running httpx-toolkit on js files...⏳${NC}"
+	        cat js.txt | httpx-toolkit --status-code > js1.txt
 	        echo -e "${YELLOW}${BOLD}[+] Done🎉${NC}"
 	        cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
 	        rm js1.txt
