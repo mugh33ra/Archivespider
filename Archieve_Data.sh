@@ -9,7 +9,8 @@ NC="\e[0m"
 BOLD='\033[1m'
 CYAN='\033[0;36m'
 
-domain=$1
+url=$1
+domain=$(echo $url | sed 's|https://||;s|http://||;s|/||')
 apikey=845a78a30376b485ce0c66d28c41f38712bc6becf2a628a9d464d1c3c5a8f718
 
 
@@ -38,9 +39,11 @@ else
     banner
 fi
 
-if [[ ! -d $domain ]]; then
-	mkdir $domain && cd $domain
+if [[ ! -d "$domain" ]]; then
+	mkdir -p $domain
+	cd $domain
 fi
+
 
 show_spinner() {
     local pid=$!
@@ -171,26 +174,27 @@ ${NC}"
 		# Filtering files
 		echo -e "${YELLOW}${BOLD}[>] Filtering cdx.txt,vt.txt,alienVault.txt for intresting files...⏳${NC}"
 		sleep 1
-		cat cdx.txt vt.txt alienVault.txt | sort -u | grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc' > "juicy.txt"
+		cat cdx.txt vt.txt alienVault.txt | sort -u | \
+		grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc' > "tmp_juicy.txt"
+		
+		cat tmp_juicy.txt | grep -v "\.js" > juicy.txt
+		rm tmp_juicy.txt
 		echo -e "${GREEN}${BOLD}[+] Filter Result saved to juicy.txt👌${NC}"
 		sleep 0.6
 		
 		#Combining all urls
 		echo -e "${GREEN}${BOLD}[+] Combining all urls of vt.txt alienVault.txt cdx.txt....⏳${NC}"
-		cat cdx.txt vt.txt alienVault.txt | sort -u > allurls.txt && mkdir .backup && mv cdx.txt vt.txt alienVault.txt .backup/
+		cat cdx.txt vt.txt alienVault.txt | sort -u > allurls.txt 
+		mkdir .backup
+		mv cdx.txt vt.txt alienVault.txt .backup/
 		
 
 		# removing gibrish files
 		echo -e "${GREEN}${BOLD}[+] Filtering and removing jpeg,png,jpg from allurls.txt...⏳${NC}"
 		sleep 1
-		cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' > cleanUrls.txt
+		cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' | uro > cleanUrls.txt
 		rm allurls.txt
 		echo -e "${GREEN}${BOLD}[+] Done🎉${NC}"
-
-		# total=$(wc -l < cleanUrls.txt)
-    	# echo -ne "${YELLOW}${BOLD}\r[✓] Total Cleaned Urls: $CYAN"${total}""
-		
-		# echo -e "${GREEN}${BOLD}\n[✓] Now Clean Data are saved to cleanUrls.txt😎${NC}"
 		echo ""
 	else
 		echo -e "${RED}${BOLD}[!] Files are empty and removed${NC}"
@@ -220,8 +224,10 @@ ${NC}"
 
 		else
 			
-			cat cleanUrls.txt | sort -u |grep -v "\.js$" > copy.txt
-			rm cleanUrls.txt && cat copy.txt | sort -u > cleanUrls.txt && rm copy.txt
+			cat cleanUrls.txt | sort -u | grep -v "\.js" > copy.txt
+			rm cleanUrls.txt
+			cat copy.txt | sort -u > cleanUrls.txt 
+			rm copy.txt
 
 			total=$(wc -l < js.txt)
 			echo -ne "${YELLOW}${BOLD}\r[✓] Total Js Files: $CYAN"${total}""
