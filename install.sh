@@ -19,7 +19,7 @@ for tool in "${tools[@]}"; do
       httpx-toolkit)
         echo -e "${YELLOW}[>] Installing httpx...⏳${RESET}"
         wget "https://github.com/projectdiscovery/httpx/releases/download/v1.7.0/httpx_1.7.0_linux_amd64.zip" -O httpx.zip
-        unzip httpx.zip && chmod +x * && mv httpx /usr/local/bin/httpx-toolkit
+        unzip httpx.zip && chmod +x * && mv httpx /usr/local/bin/httpx-toolkit && rm httpx.zip
         ;;
       uro)
         echo -e "${YELLOW}[>] Installing uro...⏳${RESET}"
