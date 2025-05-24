@@ -1,6 +1,6 @@
 # Archive-Data
 A Bash Script that Pulls Data from Wayback Machine, Alien_Vault &amp; Virus Total
-![alt_text]()
+![alt_text](https://github.com/mugh33ra/Archive-Data/blob/main/img/ss.jpg)
 
 # Required Tools
 * Httpx
