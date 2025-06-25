@@ -47,7 +47,10 @@ update_script() {
     echo -e "\n${MAGENTA}${BOLD}➤ Updating ArchiveSpider${NC}"
     echo -e "${CYAN}${BOLD}├─ Downloading latest version...${NC}"
     
+    # Get the full path of the current script
+    script_path=$(readlink -f "$0")
     tmp_file=$(mktemp /tmp/ArchiveSpider.XXXXXX)
+    
     curl -s "https://raw.githubusercontent.com/mugh33ra/Archive-Data/main/Archivespider.sh" -o "$tmp_file"
     
     if [[ $? -ne 0 ]]; then
@@ -63,11 +66,11 @@ update_script() {
     fi
     
     chmod +x "$tmp_file"
-    mv "$tmp_file" "$0"
+    mv "$tmp_file" "$script_path"
     echo -e "${GREEN}${BOLD}✔ Successfully updated ArchiveSpider${NC}"
     echo -e "${CYAN}${BOLD}└─ Restarting with new version...${NC}"
     
-    exec "$0" "$@"
+    exec "$script_path" "$@"
 }
 
 # Trap Ctrl+C
@@ -145,19 +148,27 @@ otx_alienvault() {
     
     local max_pages=6
     local otx_url
+    local target_domain="$domain"
+    
+    # Extract root domain if wildcard mode and subdomain is provided
+    if [[ $mode == "wc" && $domain == *.*.* ]]; then
+        target_domain=$(echo "$domain" | awk -F'.' '{print $(NF-1)"."$NF}')
+        echo -e "${CYAN}${BOLD}├─ Converted to root domain: $target_domain${NC}"
+    fi
     
     if [[ $mode == "wc" ]]; then
-        otx_url="https://otx.alienvault.com/api/v1/indicators/domain/${domain}/url_list?limit=500"
-        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Wildcard (*.$domain) with pagination (max ${max_pages} pages)"
+        otx_url="https://otx.alienvault.com/api/v1/indicators/domain/${target_domain}/url_list?limit=500"
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Wildcard (*.$target_domain) with pagination (max ${max_pages} pages)"
     else
-        otx_url="https://otx.alienvault.com/api/v1/indicators/hostname/${domain}/url_list?limit=500"
-        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Single domain ($domain)"
+        otx_url="https://otx.alienvault.com/api/v1/indicators/hostname/${target_domain}/url_list?limit=500"
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Single domain ($target_domain)"
     fi
     
     echo -e "${CYAN}${BOLD}├─ Fetching URLs from Alien Vault...${NC}"
     
     if [[ $mode == "wc" ]]; then
         for ((page=1; page<=$max_pages; page++)); do
+            echo -e "${CYAN}${BOLD}├─ Fetching page ${page}...${NC}"
             curl -s "${otx_url}&page=${page}" >> alienVault.txt &
             show_spinner "Fetching page ${page}"
             if [[ $continue_process == true ]]; then
@@ -165,6 +176,7 @@ otx_alienvault() {
                 break
             fi
             
+            # Check if we got less than 500 results (likely last page)
             if [[ $(wc -l < alienVault.txt) -lt $((page * 500)) ]]; then
                 break
             fi
