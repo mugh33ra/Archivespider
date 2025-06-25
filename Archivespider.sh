@@ -379,6 +379,7 @@ main() {
     # Default values
     mode="sd"
     ip_scanning=false
+    full_scan=false
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -398,6 +399,7 @@ main() {
                 ;;
             -ips|--ip-scan)
                 ip_scanning=true
+                full_scan=true  # Enable full scan when -ips is used
                 shift
                 ;;
             -o|--output)
@@ -451,8 +453,8 @@ main() {
     # Reset continue process flag
     continue_process=false
     
-    # Run IP scan if requested
-    if [[ $ip_scanning == true ]]; then
+    # If only IP scan requested
+    if [[ $ip_scanning == true && $full_scan == false ]]; then
         ip_scan
         exit 0
     fi
@@ -461,6 +463,46 @@ main() {
     wayback
     otx_alienvault
     vt_data
+    
+    # Enhanced IP scanning with all collected data
+    if [[ $ip_scanning == true ]]; then
+        echo -e "\n${MAGENTA}${BOLD}➤ Enhanced IP Address Discovery${NC}"
+        echo -e "${CYAN}${BOLD}├─ Scanning: ${GREEN}All Collected URLs + External Sources${NC}"
+        
+        # Extract IPs from all collected URLs first
+        local ip_file="${domain}_ips.txt"
+        
+        # Extract IPs from URLs
+        {
+            # From collected URLs
+            if [[ -f "waybackdata.txt" ]]; then
+                grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' waybackdata.txt
+            fi
+            if [[ -f "alienVault.txt" ]]; then
+                grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' alienVault.txt
+            fi
+            if [[ -f "vt.txt" ]]; then
+                grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' vt.txt
+            fi
+            
+            # From external sources
+            fetch_vt_ips
+            fetch_otx_ips
+            fetch_url_scan
+        } | sort -u | tee "$ip_file" &
+        show_spinner "Extracting IPs from all sources"
+        
+        if [[ ! -s "$ip_file" ]]; then
+            echo -e "${RED}${BOLD}✖ No IPs found for $domain${NC}"
+            rm -f "$ip_file"
+        else
+            count=$(wc -l < "$ip_file")
+            echo -e "${GREEN}${BOLD}✔ Found $count unique IP addresses${NC}"
+            echo -e "${BLUE}${BOLD}└─ Saved to $ip_file${NC}"
+        fi
+    fi
+    
+    # Continue with remaining processing
     filter_data
     filter_js
     process_httpx
