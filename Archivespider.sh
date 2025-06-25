@@ -1,296 +1,470 @@
 #!/bin/bash
 
-
+# Color and Style Variables
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
+YELLOW='\033[1;33m'
 MAGENTA='\033[0;35m'
-NC="\e[0m"
-BOLD='\033[1m'
 CYAN='\033[0;36m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
 
-url=$1
-domain=$(echo $url | sed 's|https://||;s|http://||;s|/||')
-apikey=845a78a30376b485ce0c66d28c41f38712bc6becf2a628a9d464d1c3c5a8f718
+# API Keys
+VT_API_KEY="845a78a30376b485ce0c66d28c41f38712bc6becf2a628a9d464d1c3c5a8f718"
 
-
-
-# ========== 🧾 Banner ==========
+# Banner Function
 banner() {
-echo -e "${MAGENTA}${BOLD}"
-cat << "EOF"
-     _             _     _                  ____        _        
-    / \   _ __ ___| |__ (_) _____   _____  |  _ \  __ _| |_ __ _ 
-   / _ \ | '__/ __| '_ \| |/ _ \ \ / / _ \ | | | |/ _` | __/ _` |
-  / ___ \| | | (__| | | | |  __/\ V /  __/ | |_| | (_| | || (_| |
- /_/   \_\_|  \___|_| |_|_|\___| \_/ \___| |____/ \__,_|\__\__,_|
-
-                   🚀 Coded By @mugh33ra(x) 
-EOF
-echo -e "${NC}"
+    echo -e "${BLUE}${BOLD}"
+    echo "   ___           __   _          ____     _    __       "
+    echo "  / _ | ________/ /  (_)  _____ / __/__  (_)__/ /__ ____"
+    echo " / __ |/ __/ __/ _ \/ / |/ / -_)\ \/ _ \/ / _  / -_) __/"
+    echo "/_/ |_/_/  \__/_//_/_/|___/\__/___/ .__/_/\_,_/\__/_/   "
+    echo -e "                                 /_/${NC}                    "
+    echo -e "${MAGENTA}${BOLD}                  ArchiveSpider - Web Archive & IP Scanner${NC}"
+    echo -e "${CYAN}${BOLD}                  Coded By mugh33ra (@mugh33ra)${NC}"
+    echo -e "${MAGENTA}${BOLD}==============================================================${NC}\n"
 }
 
-# ========== 📌 Usage ==========
-if [[ $# != 1 ]]; then
-    banner
-    echo -e "${YELLOW}${BOLD}⚠️ Usage: $0 example.com 😒${NC}"
-    exit 1
-else
-    banner
-fi
-
-if [[ ! -d "$domain" ]]; then
-	mkdir -p $domain
-	cd $domain
-fi
-
-
-show_spinner() {
-    local pid=$!
-    local message="${1:-Processing}"
-    local spin='-\|/'; local i=0
-    while kill -0 "$pid" 2>/dev/null; do
-        i=$(( (i+1) % 4 ))
-        printf "\r${YELLOW}${BOLD}[*] $message... ${spin:$i:1}"
-        sleep 0.1
-    done
-    printf "\r[✓] $message completed!       \n"
+# Usage Function
+usage() {
+    echo -e "${YELLOW}${BOLD}Usage:${NC} $0 -d domain.com [options]\n"
+    echo -e "${YELLOW}${BOLD}Options:${NC}"
+    echo -e "  -d, --domain <domain>        Target domain (required)"
+    echo -e "  -m, --mode <mode>            Operation mode:"
+    echo -e "                                 sd - Single domain (default)"
+    echo -e "                                 wc - Wildcard (include subdomains)"
+    echo -e "  -ips, --ip-scan              Perform IP address discovery"
+    echo -e "  -o, --output <directory>     Custom output directory"
+    echo -e "  -up, --update                Update script to latest version"
+    echo -e "  -h, --help                   Show this help message"
+    exit 0
 }
 
-
-
-
-
-run_cdx() {
-
-    echo -e "${MAGENTA}${BOLD}
-	┓ ┏    ┳┓   ┓   ┳┓     
-	┃┃┃┏┓┓┏┣┫┏┓┏┃┏  ┃┃┏┓╋┏┓
-	┗┻┛┗┻┗┫┻┛┗┻┗┛┗  ┻┛┗┻┗┗┻
-	      ┛                
-${NC}"
-	local update_interval=100
-	local count=0
-    echo -e "${YELLOW}${BOLD}[+] Extracting URLs from Wayback CDX...⏳${NC}"
-
-    # Start curl in background and show spinner
-    curl -s "https://web.archive.org/cdx/search/cdx?url=$domain/*&collapse=urlkey&output=text&fl=original" > cdx.txt &
-    show_spinner "${YELLOW}${BOLD} Fetching from CDX Api"
-
-    if [[ ! -s cdx.txt ]]; then
-    	echo -e "${RED}${BOLD}[!] cdx.txt is empty😥${NC}"
-    	echo -e "${RED}${BOLD}[+] Removing cdx.txt...⏳${NC}"
-    	rm cdx.txt
+# Update Function
+update_script() {
+    echo -e "\n${MAGENTA}${BOLD}➤ Updating ArchiveSpider${NC}"
+    echo -e "${CYAN}${BOLD}├─ Downloading latest version...${NC}"
     
+    tmp_file=$(mktemp /tmp/ArchiveSpider.XXXXXX)
+    curl -s "https://raw.githubusercontent.com/mugh33ra/Archive-Data/main/Archivespider.sh" -o "$tmp_file"
+    
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}${BOLD}✖ Failed to download update${NC}"
+        rm -f "$tmp_file"
+        return 1
+    fi
+    
+    if ! grep -q "ArchiveSpider" "$tmp_file"; then
+        echo -e "${RED}${BOLD}✖ Downloaded file doesn't appear to be valid${NC}"
+        rm -f "$tmp_file"
+        return 1
+    fi
+    
+    chmod +x "$tmp_file"
+    mv "$tmp_file" "$0"
+    echo -e "${GREEN}${BOLD}✔ Successfully updated ArchiveSpider${NC}"
+    echo -e "${CYAN}${BOLD}└─ Restarting with new version...${NC}"
+    
+    exec "$0" "$@"
+}
+
+# Trap Ctrl+C
+trap ctrl_c INT
+
+ctrl_c() {
+    echo -e "\n\n${RED}${BOLD}[!] Ctrl+C detected${NC}"
+    read -p "Are you sure you want to skip this process? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${YELLOW}${BOLD}[*] Skipping current process...${NC}"
+        continue_process=true
     else
-    
-    	cat cdx.txt | sort -u > cdx1.txt && rm cdx.txt && mv cdx1.txt cdx.txt
-    	total=$(wc -l < cdx.txt)
-		echo -ne "${YELLOW}${BOLD}\r[✓] URLs fetched from Wayback: $CYAN${total}${NC}"
-
-       	echo -e "${GREEN}${BOLD}\n[✓] Result is Saved to cdx.txt😎${NC}"
-       	echo ""
+        echo -e "${GREEN}${BOLD}[*] Resuming current process...${NC}"
+        continue_process=false
     fi
 }
 
+# Spinner Animation
+show_spinner() {
+    local pid=$!
+    local message="${1:-Processing}"
+    local spin=('⣾' '⣽' '⣻' '⢿' '⡿' '⣟' '⣯' '⣷')
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        if [[ $continue_process == true ]]; then
+            kill -9 "$pid" 2>/dev/null
+            return 1
+        fi
+        i=$(( (i+1) %8 ))
+        printf "\r${CYAN}${BOLD}[${spin[$i]}]${NC} ${BLUE}${message}...${NC}"
+        sleep 0.1
+    done
+    printf "\r${GREEN}${BOLD}[✓]${NC} ${GREEN}${message} completed!${NC}       \n"
+}
 
+# Wayback Machine Function
+wayback() {
+    echo -e "\n${MAGENTA}${BOLD}➤ Wayback Machine Data Collection${NC}"
+    
+    local url_patterns=("$domain/*")
+    if [[ $wildcard_mode ]]; then
+        url_patterns=("*.$domain/*" "*.*.$domain/*")
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Wildcard (*.$domain and *.*.$domain)"
+    else
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Single domain ($domain)"
+    fi
+    
+    echo -e "${CYAN}${BOLD}├─ Extracting URLs from Wayback CDX...${NC}"
+    
+    for pattern in "${url_patterns[@]}"; do
+        echo -e "${CYAN}${BOLD}├─ Pattern: ${pattern}${NC}"
+        curl -s "https://web.archive.org/cdx/search/cdx?url=$pattern&collapse=urlkey&output=text&fl=original" >> cdx.txt &
+        show_spinner "Fetching pattern $pattern"
+        if [[ $continue_process == true ]]; then
+            continue_process=false
+            break
+        fi
+    done
+    
+    if [[ ! -s cdx.txt ]]; then
+        echo -e "${RED}${BOLD}✖ No data found in Wayback Machine${NC}"
+        rm -f cdx.txt
+    else
+        cat cdx.txt | sort -u > tmp_cdx && mv tmp_cdx waybackdata.txt && rm -f cdx.txt
+        total=$(wc -l < waybackdata.txt)
+        echo -e "${GREEN}${BOLD}✔ Found ${total} URLs${NC}"
+        echo -e "${BLUE}${BOLD}└─ Saved to waybackdata.txt${NC}"
+    fi
+}
 
+# Alien Vault Function with pagination
 otx_alienvault() {
-
-	echo -e "${MAGENTA}${BOLD}
-	┏┓┓•      ┓┏    ┓ 
-	┣┫┃┓┏┓┏┓  ┃┃┏┓┓┏┃╋
-	┛┗┗┗┗ ┛┗  ┗┛┗┻┗┻┗┗
-	                  
-	${NC}"
-	echo -e "${YELLOW}${BOLD}[+] Fetching Urls from Alien Vault⏳${NC}"
-	sleep 0.5
-
-	curl -s "https://otx.alienvault.com/api/v1/indicators/hostname/${domain}/url_list?limit=500" > alienVault.txt &
-	show_spinner "${YELLOW}${BOLD} Fetching from Alien_Vault Api"
-
-
-	if [[ ! -s alienVault.txt ]]; then
-		echo -e "${RED}${BOLD}[!] alienVault.txt is empty😥${NC}"
-		echo -e "${RED}${BOLD}[!] Removing alienVault.txt${NC}"
-		rm alienVault.txt
-	else
-		cat alienVault.txt | sort -u | jq -r '.url_list[]?.url' > alien.txt && \
-		rm alienVault.txt && mv alien.txt alienVault.txt
-
-		total=$(wc -l < alienVault.txt)
-		echo -ne "${YELLOW}${BOLD}\r[✓] URLs fetched from Alien Vault: $CYAN"${total}""
-		
-		echo -e "${GREEN}${BOLD}\n[✓] Result is Saved to alienVault.txt😎${NC}"
-		echo ""
-	fi
+    echo -e "\n${MAGENTA}${BOLD}➤ Alien Vault OTX Data Collection${NC}"
+    
+    local max_pages=6
+    local otx_url
+    
+    if [[ $mode == "wc" ]]; then
+        otx_url="https://otx.alienvault.com/api/v1/indicators/domain/${domain}/url_list?limit=500"
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Wildcard (*.$domain) with pagination (max ${max_pages} pages)"
+    else
+        otx_url="https://otx.alienvault.com/api/v1/indicators/hostname/${domain}/url_list?limit=500"
+        echo -e "${CYAN}${BOLD}├─ Mode:${NC} Single domain ($domain)"
+    fi
+    
+    echo -e "${CYAN}${BOLD}├─ Fetching URLs from Alien Vault...${NC}"
+    
+    if [[ $mode == "wc" ]]; then
+        for ((page=1; page<=$max_pages; page++)); do
+            curl -s "${otx_url}&page=${page}" >> alienVault.txt &
+            show_spinner "Fetching page ${page}"
+            if [[ $continue_process == true ]]; then
+                continue_process=false
+                break
+            fi
+            
+            if [[ $(wc -l < alienVault.txt) -lt $((page * 500)) ]]; then
+                break
+            fi
+        done
+    else
+        curl -s "$otx_url" > alienVault.txt &
+        show_spinner "Fetching from Alien Vault API"
+    fi
+    
+    if [[ $continue_process == true ]]; then
+        continue_process=false
+        return
+    fi
+    
+    if [[ ! -s alienVault.txt ]]; then
+        echo -e "${RED}${BOLD}✖ No data found in Alien Vault${NC}"
+        rm -f alienVault.txt
+    else
+        cat alienVault.txt | sort -u | jq -r '.url_list[]?.url' > alien.txt && \
+        rm -f alienVault.txt && mv alien.txt alienVault.txt
+        total=$(wc -l < alienVault.txt)
+        echo -e "${GREEN}${BOLD}✔ Found ${total} URLs${NC}"
+        echo -e "${BLUE}${BOLD}└─ Saved to alienVault.txt${NC}"
+    fi
 }
 
-
+# VirusTotal Function
 vt_data() {
-
-	echo -e "${MAGENTA}${BOLD}
-	┓┏•       ┏┳┓     ┓
-	┃┃┓┏┓┓┏┏   ┃ ┏┓╋┏┓┃
-	┗┛┗┛ ┗┻┛   ┻ ┗┛┗┗┻┗
-	                   
-${NC}"
-	echo -e "${YELLOW}${BOLD}[>] Fetching urls from Virus total...⏳${NC}"
-	curl -s "https://virustotal.com/vtapi/v2/domain/report?domain=$domain&apikey=$apikey" > vt.txt &
-	show_spinner "${YELLOW}${BOLD} Fetching from Virus_Total Api"
-
-	if [[ ! -s "vt.txt" ]]; then
-		echo -e "${RED}${BOLD}[!] vt.txt is empty😥${NC}"
-		echo -e "${RED}${BOLD}[!] Removing vt.txt${NC}"
-		rm vt.txt
-	else
-		cat vt.txt | sort -u | jq -r '.. | strings | select(test("https?://"))' | grep -E '(https?://[^\s"<>]+)' | grep "${domain}" > vt-urls.txt
-		rm vt.txt && mv vt-urls.txt vt.txt
-
-		total=$(wc -l < vt.txt)
-		echo -ne "${YELLOW}${BOLD}\r[✓] URLs fetched from VirusTotal: $CYAN"${total}""
-
-		echo -e "${GREEN}${BOLD}\n[✓] Result is Saved to vt.txt😎${NC}"
-		echo ""
-	fi
-	
+    echo -e "\n${MAGENTA}${BOLD}➤ VirusTotal Data Collection${NC}"
+    echo -e "${CYAN}${BOLD}├─ Fetching URLs from VirusTotal...${NC}"
+    
+    curl -s "https://virustotal.com/vtapi/v2/domain/report?domain=$domain&apikey=$VT_API_KEY" > vt.txt &
+    show_spinner "Fetching from VirusTotal API"
+    if [[ $continue_process == true ]]; then
+        continue_process=false
+        return
+    fi
+    
+    if [[ ! -s "vt.txt" ]]; then
+        echo -e "${RED}${BOLD}✖ No data found in VirusTotal${NC}"
+        rm -f vt.txt
+    else
+        cat vt.txt | sort -u | jq -r '.. | strings | select(test("https?://"))' | \
+        grep -E '(https?://[^\s"<>]+)' | grep "${domain}" > vt-urls.txt
+        rm -f vt.txt && mv vt-urls.txt vt.txt
+        total=$(wc -l < vt.txt)
+        echo -e "${GREEN}${BOLD}✔ Found ${total} URLs${NC}"
+        echo -e "${BLUE}${BOLD}└─ Saved to vt.txt${NC}"
+    fi
 }
 
-filter_cdx() {
-
-	echo -e "${MAGENTA}${BOLD}
-	┏┓•┓     •      ┳┳  ┓ 
-	┣ ┓┃╋┏┓┏┓┓┏┓┏┓  ┃┃┏┓┃┏
-	┻ ┗┗┗┗ ┛ ┗┛┗┗┫  ┗┛┛ ┗┛
-	             ┛        
-${NC}"
-
-	local count=0
-
-	#filter for juicy files
-	if [[ -f "cdx.txt" && -f "alienVault.txt" && -f "vt.txt"  ]]; then
-
-
-		# Filtering files
-		echo -e "${YELLOW}${BOLD}[>] Filtering cdx.txt,vt.txt,alienVault.txt for intresting files...⏳${NC}"
-		sleep 1
-		cat cdx.txt vt.txt alienVault.txt | sort -u | \
-		grep -E '\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc' > "tmp_juicy.txt"
-		
-		cat tmp_juicy.txt | grep -v "\.js" > juicy.txt
-		rm tmp_juicy.txt
-		echo -e "${GREEN}${BOLD}[+] Filter Result saved to juicy.txt👌${NC}"
-		sleep 0.6
-		
-		#Combining all urls
-		echo -e "${GREEN}${BOLD}[+] Combining all urls of vt.txt alienVault.txt cdx.txt....⏳${NC}"
-		cat cdx.txt vt.txt alienVault.txt | sort -u > allurls.txt 
-		mkdir .backup
-		mv cdx.txt vt.txt alienVault.txt .backup/
-		
-
-		# removing gibrish files
-		echo -e "${GREEN}${BOLD}[+] Filtering and removing jpeg,png,jpg from allurls.txt...⏳${NC}"
-		sleep 1
-		cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' | uro > cleanUrls.txt
-		rm allurls.txt
-		echo -e "${GREEN}${BOLD}[+] Done🎉${NC}"
-		echo ""
-	else
-		echo -e "${RED}${BOLD}[!] Files are empty and removed${NC}"
-		exit 1
-	fi
-
+# IP Scanning Functions (silent version)
+fetch_vt_ips() {
+    curl -s "https://www.virustotal.com/vtapi/v2/domain/report?domain=$domain&apikey=$VT_API_KEY" \
+        | jq -r '.. | .ip_address? // empty' \
+        | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u
 }
 
-js_endpoints() {
-
-	echo -e "${MAGENTA}${BOLD}
-	┏┓•┓     •      ┏┳┏┓  ┏┓•┓   
-	┣ ┓┃╋┏┓┏┓┓┏┓┏┓   ┃┗┓  ┣ ┓┃┏┓┏
-	┻ ┗┗┗┗ ┛ ┗┛┗┗┫  ┗┛┗┛  ┻ ┗┗┗ ┛
-	             ┛               
-${NC}"
-	local count=0
-	if [[ -f "cleanUrls.txt" ]]; then
-
-		echo -e "${GREEN}${BOLD}[>] Filtering JS files from cleanUrls.txt...⏳${NC}"
-		sleep 1
-		cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
-
-		if [[ ! -s "js.txt" ]]; then
-			echo -e "${RED}${BOLD}[!] No js files found in cleanurls.txt😥${NC}"
-			rm js.txt
-
-		else
-			
-			cat cleanUrls.txt | sort -u | grep -v "\.js" > copy.txt
-			rm cleanUrls.txt
-			cat copy.txt | sort -u > cleanUrls.txt 
-			rm copy.txt
-
-			total=$(wc -l < js.txt)
-			echo -ne "${YELLOW}${BOLD}\r[✓] Total Js Files: $CYAN"${total}""
-
-			echo -e "${GREEN}${BOLD}\n[+] Done🎉"
-			echo -e "${GREEN}${BOLD}[✓] js files filtered and saved to js.txt😎${NC}"
-		fi
-	
-	else
-		echo -e "${RED}${BOLD}[!] cleanUrls.txt are empty and removed${NC}"
-	fi
-
+fetch_otx_ips() {
+    curl -s "https://otx.alienvault.com/api/v1/indicators/hostname/$domain/url_list?limit=500&page=1" \
+        | jq -r '.url_list[]?.result?.urlworker?.ip // empty' \
+        | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u
 }
 
-httpx_tool() {
-
-        echo -e "${MAGENTA}${BOLD}
-	┓┏      
-	┣┫╋╋┏┓┓┏
-	┛┗┗┗┣┛┛┗
-	    ┛   
-${NC}"
-		
-		if [[ -f "js.txt" ]]; then
-
-			echo -e "${GREEN}${BOLD}[>] Running httpx-toolkit on js files...⏳${NC}"
-	        cat js.txt | httpx-toolkit --status-code > js1.txt
-	        echo -e "${YELLOW}${BOLD}[+] Done🎉${NC}"
-	        cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
-	        rm js1.txt
-	        cat alivejs.txt | while read url;do curl -s $url ; done | grep -Eo '(/[a-zA-Z0-9_-]+)*)|(/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*)\.(php|aspx|asp|jsp|html|json|sql|ini|log|LOG|xml|zip|conf|htm|jspx|cgi|bak|backup)' | tr -d '"' | sort -u | cut -d ")" -f 1 > endpoints.txt
-	        echo -e "${YELLOW}${BOLD}[✓] Endpoints extracted from js files are saved to endpoints.txt😎${NC}"
-		
-		else
-			echo -e "${RED}${BOLD}[!] js.txt not found maybe empty and removed${NC}"
-		fi
+fetch_url_scan() {
+    curl -s "https://urlscan.io/api/v1/search/?q=domain:$domain&size=10000" \
+        | jq -r '.results[]?.page?.ip // empty' \
+        | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u
 }
 
-total() {
-
-
-	if [[ -f js.txt && -f cleanUrls.txt ]]; then
-		
-		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"$(wc -l < cleanUrls.txt)""
-		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"$(wc -l < js.txt)""
-
-	elif [[ -f js.txt && ! -f cleanUrls.txt ]]; then
-		echo -e "${YELLOW}${BOLD}[✓] Total js.txt Files: $CYAN"$(wc -l < js.txt)""
-	elif [[ -f cleanUrls.txt && ! -f js.txt ]]; then
-		echo -e "${YELLOW}${BOLD}\r[✓] Total cleanurls.txt Files: $CYAN"$(wc -l < cleanUrls.txt)""
-	else
-		echo -e "${RED}${BOLD}[!] Js.txt & cleanurls.txt are not found${NC}"
-	fi
-	
+ip_scan() {
+    echo -e "\n${MAGENTA}${BOLD}➤ IP Address Discovery${NC}"
+    echo -e "${CYAN}${BOLD}├─ Scanning: ${GREEN}Wayback, AlienVault & UrlScan.io${NC}"
+    
+    local output_file="${domain}_ips.txt"
+    
+    # Show single spinner for all IP fetching
+    (
+        fetch_vt_ips
+        fetch_otx_ips
+        fetch_url_scan
+    ) | sort -u | tee "$output_file" &
+    show_spinner "Fetching IP addresses"
+    
+    if [[ $continue_process == true ]]; then
+        continue_process=false
+        return
+    fi
+    
+    if [[ ! -s "$output_file" ]]; then
+        echo -e "${RED}${BOLD}✖ No IPs found for $domain${NC}"
+        rm -f "$output_file"
+    else
+        count=$(wc -l < "$output_file")
+        echo -e "${GREEN}${BOLD}✔ Found $count unique IP addresses${NC}"
+        echo -e "${BLUE}${BOLD}└─ Saved to $output_file${NC}"
+    fi
 }
 
+# Filtering Function
+filter_data() {
+    echo -e "\n${MAGENTA}${BOLD}➤ Data Processing${NC}"
+    
+    if [[ -f "waybackdata.txt" && -f "alienVault.txt" && -f "vt.txt" ]]; then
+        echo -e "${CYAN}${BOLD}├─ Filtering for interesting files...${NC}"
+        cat waybackdata.txt alienVault.txt vt.txt | sort -u | \
+        grep -E '\.(xls|xml|xlsx|json|pdf|sql|docx?|pptx|txt|zip|targz|tgz|gz|bak|7z|rar|log|cache|secret|db|backup|yml|config|csv|yaml|md|md5|exe|dll|bin|ini|bat|sh|py|tar|deb|rpm|iso|img|apk|msi|dmg|tmp|crt|pem|key|pub|asc)' > tmp_juicy.txt
+        
+        grep -v "\.js" tmp_juicy.txt > juicy.txt && rm -f tmp_juicy.txt
+        echo -e "${GREEN}${BOLD}├─ Interesting files saved to juicy.txt${NC}"
+        
+        echo -e "${CYAN}${BOLD}├─ Combining all URLs...${NC}"
+        cat waybackdata.txt alienVault.txt vt.txt | sort -u > allurls.txt
+        
+        if [[ ! -d ".backup" ]]; then 
+            mkdir -p .backup
+        fi
+        mv waybackdata.txt alienVault.txt vt.txt .backup/
+        
+        echo -e "${CYAN}${BOLD}├─ Removing media/static files...${NC}"
+        cat allurls.txt | grep -vE '\.jpg|\.png|\.jpeg|\.gif|\.woff|\.ts|\.webp|\.css|\.ttf|\.svg|\.swf|\.eot|\.xls|\.xml|\.xlsx|\.json|\.pdf|\.sql|\.doc|\.docx|\.pptx|\.txt|\.zip|\.targz|\.tgz|\.gz|\.bak|\.7z|\.rar|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.config|\.csv|\.yaml|\.md|\.md5|\.exe|\.dll|\.bin|\.ini|\.bat|\.sh|\.py|\.tar|\.deb|\.rpm|\.iso|\.img|\.apk|\.msi|\.dmg|\.tmp|\.crt|\.pem|\.key|\.pub|\.asc$' | uro > cleanUrls.txt
+        rm -f allurls.txt
+        
+        echo -e "${GREEN}${BOLD}✔ Data processing complete!${NC}"
+    else
+        echo -e "${RED}${BOLD}✖ Required files are missing${NC}"
+        exit 1
+    fi
+}
 
-run_cdx
-otx_alienvault
-vt_data
-filter_cdx
-js_endpoints
-total
-httpx_tool
-wait
+# JavaScript Filtering
+filter_js() {
+    echo -e "\n${MAGENTA}${BOLD}➤ JavaScript Files Processing${NC}"
+    
+    if [[ -f "cleanUrls.txt" ]]; then
+        echo -e "${CYAN}${BOLD}├─ Filtering JavaScript files...${NC}"
+        cat cleanUrls.txt | sort -u | grep "\.js$" > js.txt
+        
+        if [[ -s "js.txt" ]]; then
+            cat cleanUrls.txt | sort -u | grep -v "\.js" > tmp_clean.txt
+            mv tmp_clean.txt cleanUrls.txt
+            total_js=$(wc -l < js.txt)
+            echo -e "${GREEN}${BOLD}├─ Found ${total_js} JavaScript files${NC}"
+            echo -e "${BLUE}${BOLD}└─ Saved to js.txt${NC}"
+        else
+            rm -f js.txt
+            echo -e "${YELLOW}${BOLD}⚠ No JavaScript files found${NC}"
+        fi
+    else
+        echo -e "${RED}${BOLD}✖ cleanUrls.txt is missing${NC}"
+    fi
+}
 
+# HTTPX Processing
+process_httpx() {
+    echo -e "\n${MAGENTA}${BOLD}➤ HTTPX Processing${NC}"
+    
+    if [[ -f "js.txt" ]]; then
+        echo -e "${CYAN}${BOLD}├─ Running httpx on JS files...${NC}"
+        if command -v httpx-toolkit &>/dev/null; then
+            cat js.txt | httpx-toolkit --status-code > js1.txt
+            cat js1.txt | grep "200" | cut -d "[" -f 1 > alivejs.txt
+            rm -f js1.txt
+            
+            echo -e "${CYAN}${BOLD}├─ Extracting endpoints...${NC}"
+            cat alivejs.txt | while read url; do 
+                curl -s "$url" | grep -Eo '(/[a-zA-Z0-9_-]+)*)|(/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*)\.(php|aspx|asp|jsp|html|json|sql|ini|log|LOG|xml|zip|conf|htm|jspx|cgi|bak|backup)' | \
+                tr -d '"' | sort -u | cut -d ")" -f 1
+            done > endpoints.txt
+            
+            echo -e "${GREEN}${BOLD}✔ Endpoints saved to endpoints.txt${NC}"
+        else
+            echo -e "${RED}${BOLD}✖ httpx-toolkit not found${NC}"
+        fi
+    else
+        echo -e "${RED}${BOLD}✖ js.txt not found${NC}"
+    fi
+}
+
+# Summary Function
+show_summary() {
+    echo -e "\n${MAGENTA}${BOLD}➤ Final Summary${NC}"
+    
+    if [[ -f "cleanUrls.txt" ]]; then
+        clean_count=$(wc -l < cleanUrls.txt)
+        echo -e "${CYAN}${BOLD}├─ Clean URLs: ${GREEN}${clean_count}${NC} (cleanUrls.txt)"
+    fi
+    
+    if [[ -f "js.txt" ]]; then
+        js_count=$(wc -l < js.txt)
+        echo -e "${CYAN}${BOLD}├─ JavaScript Files: ${GREEN}${js_count}${NC} (js.txt)"
+    fi
+    
+    if [[ -f "juicy.txt" ]]; then
+        juicy_count=$(wc -l < juicy.txt)
+        echo -e "${CYAN}${BOLD}├─ Interesting Files: ${GREEN}${juicy_count}${NC} (juicy.txt)"
+    fi
+    
+    if [[ -f "endpoints.txt" ]]; then
+        endpoints_count=$(wc -l < endpoints.txt)
+        echo -e "${CYAN}${BOLD}├─ Extracted Endpoints: ${GREEN}${endpoints_count}${NC} (endpoints.txt)"
+    fi
+    
+    echo -e "\n${GREEN}${BOLD}✔ All operations completed successfully!${NC}"
+    echo -e "${BLUE}${BOLD}  Results saved in the ${domain}/ directory${NC}\n"
+}
+
+# Main Execution
+main() {
+    banner
+    
+    # Default values
+    mode="sd"
+    ip_scanning=false
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -d|--domain)
+                domain=$(echo "$2" | sed 's|https://||;s|http://||;s|/||')
+                shift 2
+                ;;
+            -m|--mode)
+                if [[ "$2" == "wc" || "$2" == "sd" ]]; then
+                    mode="$2"
+                else
+                    echo -e "${RED}${BOLD}[!] Invalid mode. Use 'sd' (single domain) or 'wc' (wildcard)${NC}"
+                    exit 1
+                fi
+                shift 2
+                ;;
+            -ips|--ip-scan)
+                ip_scanning=true
+                shift
+                ;;
+            -o|--output)
+                output_dir="$2"
+                shift 2
+                ;;
+            -up|--update)
+                update_script "$@"
+                exit $?
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                echo -e "${RED}${BOLD}[!] Unknown option: $1${NC}"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+    
+    # Validate domain
+    if [[ -z $domain ]]; then
+        echo -e "${RED}${BOLD}[!] Domain is required${NC}"
+        usage
+        exit 1
+    fi
+    
+    if ! [[ $domain =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+        echo -e "${RED}${BOLD}[!] Please enter a valid domain (e.g. example.com)${NC}"
+        exit 1
+    fi
+    
+    # Set wildcard_mode based on mode
+    if [[ $mode == "wc" ]]; then
+        wildcard_mode=true
+    fi
+    
+    # Create output directory
+    if [[ -n $output_dir ]]; then
+        if [[ ! -d "$output_dir" ]]; then
+            mkdir -p "$output_dir"
+        fi
+        cd "$output_dir" || exit
+    elif [[ ! -d "$domain" ]]; then
+        mkdir -p "$domain" && cd "$domain" || exit
+    else
+        cd "$domain" || exit
+    fi
+    
+    # Reset continue process flag
+    continue_process=false
+    
+    # Run IP scan if requested
+    if [[ $ip_scanning == true ]]; then
+        ip_scan
+        exit 0
+    fi
+    
+    # Execute main functions
+    wayback
+    otx_alienvault
+    vt_data
+    filter_data
+    filter_js
+    process_httpx
+    show_summary
+}
+
+main "$@"
