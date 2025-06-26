@@ -47,30 +47,48 @@ update_script() {
     echo -e "\n${MAGENTA}${BOLD}➤ Updating ArchiveSpider${NC}"
     echo -e "${CYAN}${BOLD}├─ Downloading latest version...${NC}"
     
-    # Get the full path of the current script
-    script_path=$(readlink -f "$0")
-    tmp_file=$(mktemp /tmp/ArchiveSpider.XXXXXX)
+    # Get the directory where the script is located
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    script_name="$(basename "${BASH_SOURCE[0]}")"
+    script_path="${script_dir}/${script_name}"
+    tmp_file="${script_dir}/.${script_name}.tmp"
     
-    curl -s "https://raw.githubusercontent.com/mugh33ra/Archive-Data/main/Archivespider.sh" -o "$tmp_file"
-    
-    if [[ $? -ne 0 ]]; then
+    # Download the new version
+    if ! curl -s "https://raw.githubusercontent.com/mugh33ra/Archive-Data/main/Archivespider.sh" -o "$tmp_file"; then
         echo -e "${RED}${BOLD}✖ Failed to download update${NC}"
-        rm -f "$tmp_file"
+        rm -f "$tmp_file" 2>/dev/null
         return 1
     fi
     
+    # Verify the downloaded script
     if ! grep -q "ArchiveSpider" "$tmp_file"; then
         echo -e "${RED}${BOLD}✖ Downloaded file doesn't appear to be valid${NC}"
-        rm -f "$tmp_file"
+        rm -f "$tmp_file" 2>/dev/null
         return 1
     fi
     
-    chmod +x "$tmp_file"
-    mv "$tmp_file" "$script_path"
-    echo -e "${GREEN}${BOLD}✔ Successfully updated ArchiveSpider${NC}"
-    echo -e "${CYAN}${BOLD}└─ Restarting with new version...${NC}"
+    # Make backup of current version
+    cp "$script_path" "${script_path}.bak"
     
-    exec "$script_path" "$@"
+    # Replace the script
+    if ! mv "$tmp_file" "$script_path"; then
+        echo -e "${RED}${BOLD}✖ Failed to replace script${NC}"
+        return 1
+    fi
+    
+    chmod +x "$script_path"
+    echo -e "${GREEN}${BOLD}✔ Successfully updated ArchiveSpider${NC}"
+    
+    # Ask user if they want to restart
+    read -p "Update complete. Restart script now? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${CYAN}${BOLD}└─ Restarting...${NC}"
+        exec "$script_path" "${original_args[@]}"
+    else
+        echo -e "${CYAN}${BOLD}└─ Changes will take effect on next run${NC}"
+        exit 0
+    fi
 }
 
 # Trap Ctrl+C
