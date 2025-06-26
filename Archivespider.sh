@@ -84,10 +84,11 @@ update_script() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo -e "${CYAN}${BOLD}└─ Restarting...${NC}"
+        rm  $0.bak
         exec "$script_path" "${original_args[@]}"
     else
         echo -e "${CYAN}${BOLD}└─ Changes will take effect on next run${NC}"
-        rm  archivespider.sh.bak
+        rm  $0.bak
         exit 0
     fi
 }
