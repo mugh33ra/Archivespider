@@ -87,7 +87,7 @@ update_script() {
         exec "$script_path" "${original_args[@]}"
     else
         echo -e "${CYAN}${BOLD}└─ Changes will take effect on next run${NC}"
-        rm  wayback.sh.bak
+        rm  archivespider.sh.bak
         exit 0
     fi
 }
