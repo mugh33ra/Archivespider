@@ -22,9 +22,11 @@ banner() {
     echo " / __ |/ __/ __/ _ \/ / |/ / -_)\ \/ _ \/ / _  / -_) __/"
     echo "/_/ |_/_/  \__/_//_/_/|___/\__/___/ .__/_/\_,_/\__/_/   "
     echo -e "                                 /_/${NC}                    "
-    echo -e "${MAGENTA}${BOLD}                  ArchiveSpider - Web Archive & IP Scanner${NC}"
-    echo -e "${CYAN}${BOLD}                  Coded By mugh33ra (@mugh33ra)${NC}"
-    echo -e "${MAGENTA}${BOLD}==============================================================${NC}\n"
+    echo ""
+    echo -e "${MAGENTA}${BOLD}        ArchiveSpider - Web Archive & IP Scanner${NC}"
+    echo -e "${CYAN}${BOLD}            Coded By mugh33ra (@mugh33ra)${NC}"
+    echo ""
+
 }
 
 # Usage Function
