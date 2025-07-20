@@ -1,79 +1,165 @@
-[![GitHub release](https://img.shields.io/github/release/mugh33ra/Archive-Data.svg)](https://github.com/mugh33ra/Archive-Data/releases)
+
+[![GitHub release](https://img.shields.io/github/release/mugh33ra/Archivespider.svg)](https://github.com/mugh33ra/Archivespider/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub issues](https://img.shields.io/github/issues/mugh33ra/Archive-Data.svg)](https://github.com/mugh33ra/Archive-Data/issues)
-[![GitHub stars](https://img.shields.io/github/stars/mugh33ra/Archive-Data.svg)](https://github.com/mugh33ra/Archive-Data/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/mugh33ra/Archive-Data.svg)](https://github.com/mugh33ra/Archive-Data/network)
+[![GitHub issues](https://img.shields.io/github/issues/mugh33ra/Archivespider.svg)](https://github.com/mugh33ra/Archivespider/issues)
+[![GitHub stars](https://img.shields.io/github/stars/mugh33ra/Archivespider.svg)](https://github.com/mugh33ra/Archivespider/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/mugh33ra/Archivespider.svg)](https://github.com/mugh33ra/Archivespider/network)
 
-# Archive-Data
+# 🕷️ Archivespider
 
-A Bash Script that Pulls Data from Wayback Machine, Alien_Vault & Virus Total
+A powerful and modular **bash-based OSINT reconnaissance framework** to extract, filter, and analyze URLs, JS files, IPs, and hidden endpoints from open sources like **Wayback Machine**, **OTX AlienVault**, and **VirusTotal**.
 
 <h1 align="center">
-  <img src="https://github.com/mugh33ra/Archive-Data/blob/main/img/ss.jpg" width="700px">
+  <img src="https://github.com/mugh33ra/Archivespider/blob/main/img/ss.jpg" width="700px" alt="screenshot">
   <br>
 </h1>
 
-## Required Tools
+---
 
-- Httpx
-- uro
-- golang
-- curl
-- jq
+## ✨ Features
+
+- 📦 Pulls archived URLs from:
+  - Wayback Machine (Internet Archive)
+  - VirusTotal domain reports
+  - AlienVault OTX (with pagination support)
+- 🌐 Supports **wildcard mode** to include all subdomains.
+- 🔍 Extracts:
+  - IP addresses from VT, OTX, and URLScan
+  - JavaScript file URLs
+  - Interesting file types (like `.sql`, `.pdf`, `.docx`, `.bak`, `.json`, etc.)
+  - Hidden endpoints from alive JS files
+- 📊 Generates cleaned lists, reports, and summaries.
+- 🔄 Built-in **auto-update** functionality from GitHub.
+- 🔧 Resilient to interruptions with a graceful Ctrl+C trap.
+- 🧠 Smart filtering for static/media files.
+- 🎯 Integrated `httpx-toolkit` and `uro` support.
 
 ---
 
-## Features
+## ⚙️ Requirements
 
-Since this is only Version 1.0, we will upgrade this script over time and add more advanced techniques to find XSS, SQLi, open redirect, etc.
+Before running, make sure you have the following installed:
 
-- Downloads data from Internet Archive (Wayback Machine), VirusTotal & OTX AlienVault.
-- Filters URLs for juicy extensions and separates them into `juicy.txt`.
-- Cleans URLs from image and other irrelevant extensions (`jpg`, `png`, `gif`, etc.) producing `cleanUrls.txt`.
-- Filters JavaScript files from URLs and stores them into `js.txt` for further testing.
-- Runs `httpx-toolkit` to filter alive JavaScript files.
-- Extracts hidden endpoints from alive JS files and saves them into `endpoints.txt`.
+- [`httpx-toolkit`](https://github.com/projectdiscovery/httpx)
+- [`uro`](https://github.com/s0md3v/uro)
+- `jq`
+- `curl`
+- `bash`
+- `golang`
 
----
-
-## Installation
-
-Make sure to run the provided `install.sh` script before running the main script to install dependencies.
+To install all dependencies:
 
 ```bash
 bash install.sh
 ```
 
-## Usage
+---
 
-Run the script with a domain as the argument:
-
-```bash
-bash Archive_Data.sh example.com
-```
-The script will create a directory named after the domain and save all output files inside it.
-
-## Output Files
-
-- juicy.txt — `Filtered URLs with juicy file extensions.`
-- cleanUrls.txt — `Combined and cleaned URLs.`
-- js.txt — `JavaScript file URLs extracted from cleanUrls.txt.`
-- alivejs.txt — `Alive JavaScript URLs after httpx-toolkit scan.`
-- endpoints.txt — `Extracted endpoints from alive JS files.`
-
-## Example Output
+## 🚀 Usage
 
 ```bash
-[✓] URLs fetched from Wayback: 1234
-[✓] URLs fetched from Alien Vault: 567
-[✓] URLs fetched from VirusTotal: 89
-[+] Filter Result saved to juicy.txt👌
-[+] Total Js Files: 45
-[✓] Endpoints extracted from js files are saved to endpoints.txt😎
+bash Archivespider.sh -d example.com [options]
 ```
 
-## Author
+### 🔧 Options
 
-https://x.com/mugh33ra
+| Flag                    | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| `-d, --domain`          | **(Required)** Target domain to scan                                       |
+| `-m, --mode`            | Operation mode: `sd` (single domain) or `wc` (wildcard for subdomains)     |
+| `-ips`                  | Enable IP scanning (VT, OTX, URLScan)                                      |
+| `-o, --output`          | Custom output directory for saving results                                 |
+| `-up, --update`         | Update the script from the official GitHub repository                      |
+| `-h, --help`            | Show usage guide                                                            |
 
-Feel free to open issues or reach out for questions and suggestions!
+---
+
+## 🧪 Example Usage
+
+### Basic
+
+```bash
+bash Archivespider.sh -d example.com
+```
+
+### Wildcard Subdomain Mode
+
+```bash
+bash Archivespider.sh -d example.com -m wc
+```
+
+### IP Discovery Only
+
+```bash
+bash Archivespider.sh -d example.com -ips
+```
+
+### Custom Output Directory
+
+```bash
+bash Archivespider.sh -d example.com -o ./output_dir
+```
+
+---
+
+## 📁 Output Structure
+
+After execution, results will be saved in a folder named after the domain or your custom directory.
+
+| File               | Description                                                                 |
+|--------------------|-----------------------------------------------------------------------------|
+| `waybackdata.txt`  | Raw URLs from the Wayback Machine                                           |
+| `alienVault.txt`   | URLs pulled from AlienVault                                                 |
+| `vt.txt`           | URLs retrieved from VirusTotal                                              |
+| `juicy.txt`        | URLs pointing to sensitive filetypes (PDF, SQL, JSON, etc.)                 |
+| `cleanUrls.txt`    | URLs filtered to remove static/media noise                                  |
+| `js.txt`           | JavaScript URLs extracted from `cleanUrls.txt`                              |
+| `alivejs.txt`      | Verified reachable JS files using `httpx-toolkit`                           |
+| `endpoints.txt`    | Hidden API endpoints discovered inside JS files                             |
+| `<domain>_ips.txt` | Aggregated IPs from VT, AlienVault, URLScan, and URL content                |
+
+---
+
+## 📸 Sample Output
+
+```bash
+[✓] Found 1287 URLs from Wayback Machine
+[✓] Found 412 URLs from AlienVault
+[✓] Found 99 URLs from VirusTotal
+[+] Filtered 56 juicy files -> juicy.txt
+[✓] JS Files Detected: 33 -> js.txt
+[✓] Alive JS files: 25 -> alivejs.txt
+[✓] Extracted 60 hidden endpoints -> endpoints.txt
+[✓] Found 17 unique IP addresses -> example.com_ips.txt
+```
+
+---
+
+## 🛠 Update
+
+To update the script to the latest version:
+
+```bash
+bash Archivespider.sh -up
+```
+
+---
+
+## 👨‍💻 Author
+
+**mugh33ra**
+
+- Twitter/X: [@mugh33ra](https://x.com/mugh33ra)
+- GitHub: [mugh33ra](https://github.com/mugh33ra)
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+---
+
+## 🙏 Contributions
+
+PRs, issues, and suggestions are welcome! If you find bugs or have ideas for improvement, feel free to contribute.
